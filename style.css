@@ -1,0 +1,16 @@
+.row {
+    display: flex;
+}
+
+.col {
+    flex: 50%;
+}
+
+video#video {
+    width: 800px;
+}
+
+.cue.current {
+    font-weight: bold;
+    background: #eee;
+}
