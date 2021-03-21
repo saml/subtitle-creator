@@ -17,8 +17,18 @@
         <div id="video-div" class="col">      
             <video controls id="video"></video>
         </div>
-        <div id="text" contenteditable="true" class="col">
-            Ctrl+Shift+v to paste text here
+        <div class="col" contenteditable="true">
+            <table id="cues">
+                <thead>
+                    <tr><th>Timestamp</th><th>Text</th></tr>
+                </thead>
+                <tbody>
+                    <tr id="cue-1" class="cue current">
+                        <td class="cue-time">0</td>
+                        <td class="cue-text">Click here and Ctrl+Shift+v to paste text</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <script src="script.js"></script>    

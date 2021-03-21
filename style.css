@@ -10,6 +10,13 @@ video#video {
     width: 800px;
 }
 
+.cue {
+    height: 1em;
+}
+.cue td {
+    border-bottom: 1px solid #000;
+}
+
 .cue.current {
     font-weight: bold;
     background: #eee;

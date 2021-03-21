@@ -4,11 +4,17 @@ let v = {
   url: null,
   input: document.querySelector('input#video-input'),
   player: document.querySelector('video#video'),
-  text: document.querySelector('#text'),
+  cues: document.querySelector('#cues').tBodies[0],
+  cueIndex: 0,
   generate: document.querySelector('#generate-srt'),
   index: 0,
   time: 0,
   length: 0,
+  siblings(elem) {
+    return Array.prototype.filter.call(elem.parentNode.children, (sibling) => {
+      return sibling !== elem;
+    });
+  },
 };
 
 function onVideoLoaded(event) {
@@ -82,6 +88,39 @@ ${cue.text}
   console.log(srt);
 }
 
+function setCurrent(row) {
+  row.classList.add('current');
+  v.siblings(row).forEach((x) => x.classList.remove('current'));
+}
+
+function setCurrentByIndex(rowIndex, table = v.cues) {
+  setCurrent(table.rows[rowIndex]);
+}
+function makeCueRow(row) {
+  const timeCol = document.createElement('td');
+  timeCol.classList.add('cue-time');
+  row.appendChild(timeCol);
+
+  const textCol = document.createElement('td');
+  textCol.classList.add('cue-text');
+  row.appendChild(textCol);
+
+  row.classList.add('cue');
+  row.id = `cue-${row.rowIndex}`;
+  return row;
+}
+
+function switchCurrentRow(row, targetIndex) {
+  const target = row.parentElement.rows[targetIndex];
+  console.log(row.rowIndex, target, targetIndex)
+  if (!target) {
+    // nothing to do.
+    return;
+  }
+  row.classList.remove('current');
+  target.classList.add('current');
+}
+
 function onKeydown(event) {
   if (event.code === 'KeyJ') {
     document.querySelector(`#cue-${v.index}`).classList.remove('current');
@@ -89,6 +128,31 @@ function onKeydown(event) {
     const cueRow = document.querySelector(`#cue-${v.index}`);
     cueRow.classList.add('current');
     cueRow.querySelector('.cue-time').innerText = v.player.currentTime;
+  } else if (event.code === 'ArrowDown') {
+    const row = v.cues.querySelector('.current');
+    switchCurrentRow(row, row.sectionRowIndex + 1);
+  } else if (event.code === 'ArrowUp') {
+    const row = v.cues.querySelector('.current');
+    switchCurrentRow(row, row.sectionRowIndex - 1);
+  } else if (event.code === 'Enter') {
+    const row = v.cues.querySelector('.current');
+    const newRow = v.cues.insertRow(row.sectionRowIndex + 1);
+    makeCueRow(newRow);
+    switchCurrentRow(row, newRow.sectionRowIndex);
+  } else if (event.code === 'Delete') {
+    const row = v.cues.querySelector('.current');
+    let rowIndex = row.sectionRowIndex;
+    v.cues.deleteRow(rowIndex);
+    rowIndex--;
+    if (rowIndex < 0) {
+      rowIndex = 0;
+    }
+    let currentRow = v.cues.rows[rowIndex];
+    if (!currentRow) {
+      currentRow = v.cues.insertRow(0);
+      makeCueRow(currentRow);
+    }
+    currentRow.classList.add('current');
   }
 }
 
@@ -120,6 +184,12 @@ function renderCurrentCue(cueIndex) {
   }
 }
 v.input.addEventListener('change', onVideoLoaded);
-v.text.addEventListener('paste', onPaste);
+v.cues.addEventListener('paste', onPaste);
+v.cues.addEventListener('click', (event) => {
+  if (event.target.tagName === 'TD') {
+    const cueRow = event.target.parentElement;
+    setCurrent(cueRow);
+  }
+});
 document.addEventListener('keydown', onKeydown);
 v.generate.addEventListener('click', onClickCreateSubtitle);
