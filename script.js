@@ -1,10 +1,72 @@
-// globals for debugging
+class Cues {
+  constructor(tbody) {
+    this.tbody = tbody;
+    this.start();
+  }
+
+  start() {
+    this.tbody.addEventListener('click', (event) => {
+      if (event.target.tagName === 'TD') {
+        const row = event.target.parentElement;
+        const prevRow = this.getCurrent();
+        this.switchCurrentRow(prevRow, row.sectionRowIndex);
+      }
+    });
+  }
+
+  getCurrent() {
+    return this.tbody.querySelector('.current');
+  }
+
+  moveDown() {
+    const row = this.getCurrent();
+    this.switchCurrentRow(row, row.sectionRowIndex + 1);
+  }
+
+  moveUp() {
+    const row = this.getCurrent();
+    this.switchCurrentRow(row, row.sectionRowIndex - 1);
+  }
+
+  addRowBelow() {
+    const row = this.getCurrent();
+    const newRow = this.tbody.insertRow(row.sectionRowIndex + 1);
+    this.makeCueRow(newRow);
+    this.switchCurrentRow(row, newRow.sectionRowIndex);
+  }
+
+  makeCueRow(row) {
+    const timeCol = document.createElement('td');
+    timeCol.classList.add('cue-time');
+    row.appendChild(timeCol);
+
+    const textCol = document.createElement('td');
+    textCol.classList.add('cue-text');
+    row.appendChild(textCol);
+
+    row.classList.add('cue');
+    row.id = `cue-${row.rowIndex}`;
+    return row;
+  }
+
+  switchCurrentRow(row, targetIndex) {
+    const target = row.parentElement.rows[targetIndex];
+    if (!target) {
+      // nothing to do.
+      return false;
+    }
+    row.classList.remove('current');
+    target.classList.add('current');
+    return true;
+  }
+};
+
 let v = {
   file: null,
   url: null,
   input: document.querySelector('input#video-input'),
   player: document.querySelector('video#video'),
-  cues: document.querySelector('#cues').tBodies[0],
+  cues: new Cues(document.querySelector('#cues').tBodies[0]),
   cueIndex: 0,
   generate: document.querySelector('#generate-srt'),
   index: 0,
@@ -15,7 +77,43 @@ let v = {
       return sibling !== elem;
     });
   },
+  isInEdit() {
+    return document.activeElement.isContentEditable;
+  },
+  start() {
+    document.addEventListener('keydown', (event) => {
+      this.onKeydown(event)
+    });
+
+  },
+  onKeydown(event) {
+    if (this.isInEdit()) {
+      if (event.code === 'Enter') {
+        console.log('Enter pressed. Split row');
+        event.preventDefault();
+      }
+    } else {
+      switch (event.code) {
+        case 'Enter':
+          this.cues.addRowBelow();
+          break;
+        case 'ArrowUp':
+          this.cues.moveUp();
+          break;
+        case 'ArrowDown':
+          this.cues.moveDown();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  // Cue (table)
 };
+
+
+
+v.start();
 
 function onVideoLoaded(event) {
   v.file = event.target.files[0];
@@ -88,41 +186,18 @@ ${cue.text}
   console.log(srt);
 }
 
-function setCurrent(row) {
-  row.classList.add('current');
-  v.siblings(row).forEach((x) => x.classList.remove('current'));
-}
+
 
 function setCurrentByIndex(rowIndex, table = v.cues) {
   setCurrent(table.rows[rowIndex]);
 }
 
-function makeCueRow(row) {
-  const timeCol = document.createElement('td');
-  timeCol.classList.add('cue-time');
-  row.appendChild(timeCol);
 
-  const textCol = document.createElement('td');
-  textCol.classList.add('cue-text');
-  row.appendChild(textCol);
 
-  row.classList.add('cue');
-  row.id = `cue-${row.rowIndex}`;
-  return row;
-}
 
-function switchCurrentRow(row, targetIndex) {
-  const target = row.parentElement.rows[targetIndex];
-  console.log(row.rowIndex, target, targetIndex)
-  if (!target) {
-    // nothing to do.
-    return;
-  }
-  row.classList.remove('current');
-  target.classList.add('current');
-}
 
 function onKeydown(event) {
+  console.log(v.isInEdit());
   if (event.code === 'KeyJ') {
     document.querySelector(`#cue-${v.index}`).classList.remove('current');
     v.index++;
@@ -185,12 +260,7 @@ function renderCurrentCue(cueIndex) {
   }
 }
 v.input.addEventListener('change', onVideoLoaded);
-v.cues.addEventListener('paste', onPaste);
-v.cues.addEventListener('click', (event) => {
-  if (event.target.tagName === 'TD') {
-    const cueRow = event.target.parentElement;
-    setCurrent(cueRow);
-  }
-});
-document.addEventListener('keydown', onKeydown);
+// v.cues.addEventListener('paste', onPaste);
+
+
 v.generate.addEventListener('click', onClickCreateSubtitle);
