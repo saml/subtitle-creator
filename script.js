@@ -96,6 +96,7 @@ function setCurrent(row) {
 function setCurrentByIndex(rowIndex, table = v.cues) {
   setCurrent(table.rows[rowIndex]);
 }
+
 function makeCueRow(row) {
   const timeCol = document.createElement('td');
   timeCol.classList.add('cue-time');

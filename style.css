@@ -1,23 +1,24 @@
 .row {
-    display: flex;
+  display: flex;
 }
 
 .col {
-    flex: 50%;
+  flex: 50%;
 }
 
 video#video {
-    width: 800px;
+  width: 800px;
 }
 
 .cue {
-    height: 1em;
+  height: 1em;
 }
+
 .cue td {
-    border-bottom: 1px solid #000;
+  border-bottom: 1px solid #000;
 }
 
 .cue.current {
-    font-weight: bold;
-    background: #eee;
+  font-weight: bold;
+  background: #eee;
 }
