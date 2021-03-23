@@ -35,9 +35,35 @@ class Cues {
 
   addRowBelow() {
     const row = this.getCurrent();
-    const newRow = this.tbody.insertRow(row.sectionRowIndex + 1);
-    this.makeCueRow(newRow);
+    const newRow = this.addRowAt(row.sectionRowIndex + 1);
     this.switchCurrentRow(row, newRow.sectionRowIndex);
+  }
+
+  addRowAt(index) {
+    const row = this.tbody.insertRow(index);
+    this.makeCueRow(row);
+    return row;
+  }
+
+  removeRow() {
+    const row = this.getCurrent();
+
+    // next current will be the row below
+    let nextIndex = row.sectionRowIndex + 1;
+    if (nextIndex >= this.tbody.rows.length) {
+      // there is no row below. next current will be row above.
+      nextIndex = row.sectionRowIndex - 1;
+    }
+    this.switchCurrentRow(row, nextIndex);
+
+    this.tbody.deleteRow(row.sectionRowIndex);
+
+    if (this.tbody.rows.length === 0) {
+      // last remaining row got removed. create one.
+      const newRow = this.addRowAt(0);
+      newRow.classList.add('current');
+      return;
+    }
   }
 
   makeCueRow(row) {
@@ -102,6 +128,9 @@ let v = {
         break;
       case 'ArrowDown':
         this.cues.moveDown();
+        break;
+      case 'Delete':
+        this.cues.removeRow();
         break;
       default:
         break;
