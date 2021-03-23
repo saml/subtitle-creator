@@ -14,6 +14,11 @@ class Cues {
     });
   }
 
+  setTime(time) {
+    const row = this.getCurrent();
+    row.querySelector('.cue-time').innerText = time;
+  }
+
   getCurrent() {
     return this.tbody.querySelector('.current');
   }
@@ -86,26 +91,37 @@ let v = {
     });
 
   },
-  onKeydown(event) {
-    if (this.isInEdit()) {
-      if (event.code === 'Enter') {
-        console.log('Enter pressed. Split row');
+  normalKeydown(event) {
+    switch (event.code) {
+      case 'Enter':
+        this.cues.addRowBelow();
         event.preventDefault();
-      }
+        break;
+      case 'ArrowUp':
+        this.cues.moveUp();
+        break;
+      case 'ArrowDown':
+        this.cues.moveDown();
+        break;
+      default:
+        break;
+    }
+  },
+  playingKeydown(event) {
+    switch (event.code) {
+      case 'Enter':
+        this.cues.setTime(this.player.currentTime);
+        this.cues.moveDown();
+        break;
+      default:
+        break;
+    }
+  },
+  onKeydown(event) {
+    if (this.player.paused) {
+      this.normalKeydown(event);
     } else {
-      switch (event.code) {
-        case 'Enter':
-          this.cues.addRowBelow();
-          break;
-        case 'ArrowUp':
-          this.cues.moveUp();
-          break;
-        case 'ArrowDown':
-          this.cues.moveDown();
-          break;
-        default:
-          break;
-      }
+      this.playingKeydown(event);
     }
   }
   // Cue (table)
