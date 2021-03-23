@@ -14,9 +14,13 @@ class Cues {
     });
   }
 
+  getTime(row) {
+    return row.querySelector('.cue-time');
+  }
+
   setTime(time) {
     const row = this.getCurrent();
-    row.querySelector('.cue-time').innerText = time;
+    this.getTime(row).innerText = time;
   }
 
   getCurrent() {
@@ -43,6 +47,11 @@ class Cues {
     const row = this.tbody.insertRow(index);
     this.makeCueRow(row);
     return row;
+  }
+
+  deleteTime() {
+    const row = this.getCurrent();
+    this.getTime(row).innerText = '';
   }
 
   removeRow() {
@@ -130,7 +139,11 @@ let v = {
         this.cues.moveDown();
         break;
       case 'Delete':
-        this.cues.removeRow();
+        if (event.shiftKey) {
+          this.cues.deleteTime();
+        } else {
+          this.cues.removeRow();
+        }
         break;
       default:
         break;
