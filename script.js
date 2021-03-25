@@ -303,12 +303,18 @@ let v = {
         this.cues.setTime(this.player.player.currentTime);
         this.cues.moveDown();
         break;
+      case 'ArrowUp':
+        this.cues.moveUp();
+        break;
+      case 'ArrowDown':
+        this.cues.moveDown();
+        break;
       default:
         break;
     }
   },
   onKeydown(event) {
-    if (this.player.paused) {
+    if (this.player.player.paused) {
       this.normalKeydown(event);
     } else {
       this.playingKeydown(event);
