@@ -42,7 +42,16 @@ class Cues {
     return result;
   }
 
+  isLastRow(row) {
+    if (!row) {
+      row = this.getCurrent();
+    }
+    return row.sectionRowIndex === this.tbody.rows.length - 1;
+  }
   getText(row) {
+    if (!row) {
+      row = this.getCurrent();
+    }
     return row.querySelector('.cue-text');
   }
 
@@ -54,11 +63,16 @@ class Cues {
   }
 
   getTime(row) {
+    if (!row) {
+      row = this.getCurrent();
+    }
     return row.querySelector('.cue-time');
   }
 
-  setTime(time) {
-    const row = this.getCurrent();
+  setTime(time, row) {
+    if (!row) {
+      row = this.getCurrent();
+    }
     this.getTime(row).innerText = time;
   }
 
@@ -68,18 +82,35 @@ class Cues {
 
   moveDown() {
     const row = this.getCurrent();
-    this.switchCurrentRow(row, row.sectionRowIndex + 1);
+    const currentRow = this.switchCurrentRow(row, row.sectionRowIndex + 1);
+    this.setCaret(currentRow);
+  }
+
+  setCaret(row) {
+    const sel = window.getSelection();
+    if (sel.anchorNode.parentElement.parentElement === row) {
+      return;
+    }
+
+    const range = document.createRange();
+    const text = this.getText(row).childNodes[0];
+    range.setStart(text, text.length);
+    range.collapse();
+
+    sel.empty();
+    sel.addRange(range);
   }
 
   moveUp() {
     const row = this.getCurrent();
-    this.switchCurrentRow(row, row.sectionRowIndex - 1);
+    const currentRow = this.switchCurrentRow(row, row.sectionRowIndex - 1);
+    this.setCaret(currentRow);
   }
 
   addRowBelow() {
     const row = this.getCurrent();
     const newRow = this.addRowAt(row.sectionRowIndex + 1);
-    this.switchCurrentRow(row, newRow.sectionRowIndex);
+    return this.switchCurrentRow(row, newRow.sectionRowIndex);
   }
 
   addRowAt(index) {
@@ -132,11 +163,11 @@ class Cues {
     const target = row.parentElement.rows[targetIndex];
     if (!target) {
       // nothing to do.
-      return false;
+      return row;
     }
     row.classList.remove('current');
     target.classList.add('current');
-    return true;
+    return target;
   }
 
   onPaste(event) {
@@ -282,15 +313,22 @@ let v = {
         break;
       case 'ArrowUp':
         this.cues.moveUp();
+        event.preventDefault();
         break;
       case 'ArrowDown':
         this.cues.moveDown();
+        event.preventDefault();
+        break;
+      case 'Backspace':
+        if (event.shiftKey) {
+          this.cues.deleteTime();
+          event.preventDefault();
+        }
         break;
       case 'Delete':
         if (event.shiftKey) {
-          this.cues.deleteTime();
-        } else {
           this.cues.removeRow();
+          event.preventDefault();
         }
         break;
       default:
@@ -302,12 +340,15 @@ let v = {
       case 'Enter':
         this.cues.setTime(this.player.player.currentTime);
         this.cues.moveDown();
+        event.preventDefault();
         break;
       case 'ArrowUp':
         this.cues.moveUp();
+        event.preventDefault();
         break;
       case 'ArrowDown':
         this.cues.moveDown();
+        event.preventDefault();
         break;
       default:
         break;
