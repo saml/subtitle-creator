@@ -219,10 +219,12 @@ class SubtitleExporter {
   constructor({
     submitButton,
     downloadLink,
+    fileNameInput,
     cues
   }) {
     this.submitButton = submitButton;
     this.downloadLink = downloadLink;
+    this.fileNameInput = fileNameInput;
     this.cues = cues;
     this.url = null;
     this.configureHandlers();
@@ -235,7 +237,7 @@ class SubtitleExporter {
   }
 
   exportSubtitle() {
-    this.downloadTextFile(this.dumpSubtitle(this.cues.toJSON()));
+    this.downloadTextFile(this.dumpSubtitle(this.cues.toJSON()), this.fileNameInput.value);
   }
 
   downloadTextFile(text, fileName) {
@@ -257,7 +259,11 @@ class SubtitleExporter {
   }
 
   secondsToTimestamp(secs) {
-    return new Date(secs * 1000).toISOString().substr(11, 12).split('.').join(',');
+    try {
+      return new Date(secs * 1000).toISOString().substr(11, 12).split('.').join(',');
+    } catch (err) {
+      return '';
+    }
   }
 
   dumpSubtitle(cues) {
@@ -294,6 +300,7 @@ const exporter = new SubtitleExporter({
   submitButton: document.querySelector('#generate-srt'),
   cues,
   downloadLink: document.querySelector('#download-srt'),
+  fileNameInput: document.querySelector('#srt-name'),
 });
 
 let v = {
