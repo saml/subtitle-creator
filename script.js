@@ -220,13 +220,15 @@ class SubtitleExporter {
     submitButton,
     downloadLink,
     fileNameInput,
-    cues
+    cues,
+    player
   }) {
     this.submitButton = submitButton;
     this.downloadLink = downloadLink;
     this.fileNameInput = fileNameInput;
     this.cues = cues;
     this.url = null;
+    this.player = player;
     this.configureHandlers();
   }
 
@@ -274,14 +276,21 @@ class SubtitleExporter {
       const subtitle = {
         number: cue.number,
         start: cue.time,
-        end: cue.time + 5, // by default, cue duration is 5 secs.
+        end: NaN,
         text: cue.text,
       };
       if (nextCue) {
         subtitle.end = nextCue.time;
       }
-      result.push(subtitle);
+      if (!isNaN(subtitle.start)) {
+        result.push(subtitle);
+      }
     }
+    const lastCue = result[result.length - 1];
+    if (isNaN(lastCue.end)) {
+      lastCue.end = this.player.player.duration || lastCue.start + 5;
+    }
+    console.log(result);
     return result.map((cue) => `${cue.number}
 ${this.secondsToTimestamp(cue.start)} --> ${this.secondsToTimestamp(cue.end)}
 ${cue.text}
@@ -301,6 +310,7 @@ const exporter = new SubtitleExporter({
   cues,
   downloadLink: document.querySelector('#download-srt'),
   fileNameInput: document.querySelector('#srt-name'),
+  player,
 });
 
 let v = {
