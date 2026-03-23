@@ -282,7 +282,7 @@ class SubtitleExporter {
       if (nextCue) {
         subtitle.end = nextCue.time;
       }
-      if (!isNaN(subtitle.start)) {
+      if (!isNaN(subtitle.start) && subtitle.text.trim()) {
         result.push(subtitle);
       }
     }
